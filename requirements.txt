@@ -1,0 +1,44 @@
+# Core Data Science
+numpy>=1.23
+pandas>=1.5
+scipy>=1.10
+
+# Visualisation
+matplotlib>=3.6
+seaborn>=0.12
+plotly>=5.10
+
+# Machine Learning
+scikit-learn>=1.2
+xgboost>=1.7
+imbalanced-learn>=0.10  # For handling imbalanced classification
+lightgbm>=3.3  # For gradient boosting models, often faster than XGBoost
+
+# Model Persistence
+joblib>=1.3
+
+# Notebooks & IDE
+jupyter>=1.0
+jupyterlab>=3.5
+ipykernel>=6.15
+ipywidgets>=8.0  # For interactive notebook widgets
+
+# Data Exploration & Profiling
+ydata-profiling>=4.0  # Modern successor to pandas-profiling, Python 3.13 compatible
+
+# Code Quality & Testing
+black>=23.0  # Code formatting
+pylint>=2.16  # Code linting
+pytest>=7.0  # Testing framework
+pytest-cov>=4.0  # Test coverage
+
+# Environment & Configuration
+python-dotenv>=1.0  # For environment variables
+
+# Utilities
+tqdm>=4.64  # Progress bars
+requests>=2.28  # HTTP requests
+
+# Streamlit for web apps
+streamlit
+kaleido==0.2.1  # For building Streamlit apps with a focus on data science
