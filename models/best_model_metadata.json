@@ -1,0 +1,30 @@
+{
+  "model_name": "RF (optimisé)",
+  "training_date": "2026-04-28",
+  "random_state": 1204,
+  "train_shape": [
+    2372,
+    23
+  ],
+  "test_shape": [
+    593,
+    23
+  ],
+  "target_rate_train": 0.21416526138279932,
+  "target_rate_test": 0.21416526138279932,
+  "metrics_xtest": {
+    "PR-AUC": 0.6208,
+    "ROC-AUC": 0.8137,
+    "F1": 0.5839,
+    "Recall": 0.6299,
+    "Precision": 0.5442
+  },
+  "best_params": {
+    "model__class_weight": "balanced_subsample",
+    "model__max_depth": "6",
+    "model__max_features": "0.5",
+    "model__min_samples_leaf": "33",
+    "model__min_samples_split": "69",
+    "model__n_estimators": "392"
+  }
+}
