@@ -1,0 +1,69 @@
+# ======================
+# Environnement Python
+# ======================
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ======================
+# Secrets & config local
+# ======================
+.env
+.env.*
+*.secret
+secrets/
+
+# ======================
+# Notebooks Jupyter
+# ======================
+*.ipynb
+.ipynb_checkpoints/
+notebooks/
+
+# ======================
+# Git
+# ======================
+.git/
+.gitignore
+.gitattributes
+
+# ======================
+# IDE & outils
+# ======================
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# ======================
+# Tests & couverture
+# ======================
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ======================
+# Logs & artefacts
+# ======================
+logs/
+*.log
+mlruns/
+outputs/
+reports/
+
+# ======================
+# Modèles sauvegardés (optionnel — à commenter si tu veux les inclure)
+# ======================
+models/
+*.joblib

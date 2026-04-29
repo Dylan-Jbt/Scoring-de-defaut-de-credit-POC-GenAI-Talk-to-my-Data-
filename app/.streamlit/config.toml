@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Streamlit config — Scoring de Défaut de Crédit + POC GenAI « Talk to my Data »
+# Contexte : banque de détail / Direction Recouvrement & Risque 
+# ─────────────────────────────────────────────────────────────────────────────
+
+[server]
+# Écoute sur toutes les interfaces (nécessaire en Docker)
+address = "0.0.0.0"
+port = 8501
+
+# Pas de rechargement automatique des fichiers en production
+runOnSave = false
+
+# Mode headless (pas d'ouverture de navigateur automatique)
+headless = true
+
+# Désactive CORS pour éviter les blocages cross-origin en conteneur
+enableCORS = false
+
+# Désactive XSRF pour simplifier les appels API internes
+enableXsrfProtection = false
+
+# Taille max des messages WebSocket (en Mo) — utile pour les grands DataFrames
+maxUploadSize = 50
+
+[browser]
+# Empêche l'envoi de statistiques d'utilisation
+gatherUsageStats = false
+
+# URL de base affichée dans les logs (à adapter si reverse proxy)
+serverAddress = "localhost"
+serverPort = 8501
+
+[runner]
+# Résout les conflits de boucle asyncio (utile avec LangChain / OpenAI)
+magicEnabled = true
+
+# Évite les warnings Streamlit sur les globals PyTorch / LangChain
+fastReruns = true
+
+[logger]
+level = "info"
+messageFormat = "%(asctime)s — %(levelname)s — %(message)s"
+
+[theme]
+# Palette professionnelle — finance / risque : bleu marine + accent rouge risque
+primaryColor     = "#1E3A5F"      # bleu marine (boutons, liens, widgets actifs)
+backgroundColor  = "#FFFFFF"      # fond blanc principal
+secondaryBackgroundColor = "#EEF2F7"  # fond secondaire (sidebar, expanders)
+textColor        = "#1A1A2E"      # texte principal quasi-noir
+font             = "sans serif"
