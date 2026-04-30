@@ -133,7 +133,6 @@ with c1:
         | Paramètre | Valeur |
         |---|---|
         | **Modèle** | {meta['model_name']} |
-        | **Date d'entraînement** | {meta['training_date']} |
         | **Taille train** | {meta['train_shape'][0]:,} observations |
         | **Taille test** | {meta['test_shape'][0]:,} observations |
         | **Taux défaut (train)** | {meta['target_rate_train']:.1%} |

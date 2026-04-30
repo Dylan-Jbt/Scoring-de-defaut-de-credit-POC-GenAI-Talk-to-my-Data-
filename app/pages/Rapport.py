@@ -46,7 +46,7 @@ k4.metric("Recall",    f"{m['Recall']:.4f}")
 k5.metric("Precision", f"{m['Precision']:.4f}")
 
 st.caption(
-    f"Modèle : **{meta['model_name']}** — entraîné le {meta['training_date']} | "
+    f"Modèle : **{meta['model_name']}** | "
     f"Train : {meta['train_shape'][0]:,} obs · {meta['train_shape'][1]} features | "
     f"Test : {meta['test_shape'][0]:,} obs · Taux de défaut test : {meta['target_rate_test']:.1%}"
 )
