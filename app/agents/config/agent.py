@@ -84,13 +84,22 @@ def _build_callbacks() -> list:
         try:
             from langfuse.langchain import CallbackHandler  # noqa: PLC0415
 
-            return [
-                CallbackHandler(
+            try:
+                # Langfuse >= 2.x
+                handler = CallbackHandler(
                     secret_key=LANGFUSE_SECRET_KEY,
                     public_key=LANGFUSE_PUBLIC_KEY,
                     host=LANGFUSE_HOST,
                 )
-            ]
+            except TypeError:
+                # Langfuse >= 3.x — paramètres lus depuis les variables d'environnement
+                import os
+                os.environ.setdefault("LANGFUSE_SECRET_KEY", LANGFUSE_SECRET_KEY)
+                os.environ.setdefault("LANGFUSE_PUBLIC_KEY", LANGFUSE_PUBLIC_KEY)
+                os.environ.setdefault("LANGFUSE_HOST", LANGFUSE_HOST)
+                handler = CallbackHandler()
+
+            return [handler]
         except ImportError:
             pass
     return []
