@@ -1,0 +1,27 @@
+[project]
+name = "Scoring-de-defaut-de-credit-POC-GenAI-Talk-to-my-Data"
+version = "0.1.0"
+description = "Modèle de scoring du risque de crédit et POC GenAI « Talk to my Data » — pipeline ML end-to-end et interface interactive en langage naturel (scikit-learn, LangChain, LangGraph, Streamlit)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.1.0",
+    "jupyter>=1.1.1",
+    "langchain>=1.0",
+    "langchain-chroma>=1.0.0",
+    "langchain-community>=0.4",
+    "langchain-core>=1.0",
+    "langchain-huggingface>=1.0.1",
+    "langchain-openai>=1.0",
+    "langfuse>=3.8.1",
+    "langgraph>=1.0",
+    "litellm>=1.78.5",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pydantic==2.10.6",
+    "pydantic-settings>=2.11.0",
+    "pypdf>=6.4.0",
+    "python-dotenv>=1.2.1",
+    "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.1.2",
+]
