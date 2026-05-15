@@ -14,7 +14,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le reste de l'application
-COPY . .
+COPY app/ .
+COPY utils/ ./utils/
+COPY data/ ./data/
+COPY models/ ./models/
 
 # Port utilisé par Streamlit
 EXPOSE 8501

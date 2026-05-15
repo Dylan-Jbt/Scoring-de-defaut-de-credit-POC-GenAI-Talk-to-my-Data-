@@ -65,5 +65,5 @@ reports/
 # ======================
 # Modèles sauvegardés (optionnel — à commenter si tu veux les inclure)
 # ======================
-models/
-*.joblib
+# models/
+# *.joblib
