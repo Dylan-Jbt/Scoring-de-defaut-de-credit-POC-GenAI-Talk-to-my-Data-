@@ -28,4 +28,3 @@ EXPOSE 8501
 # --server.address=0.0.0.0 -> accepte les connexions de n'importe quelle adresse IP
 # --server.headless=true   -> desactive l'ouverture automatique du navigateur
 CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]  
-
