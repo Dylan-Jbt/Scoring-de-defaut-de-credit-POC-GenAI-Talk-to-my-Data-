@@ -29,6 +29,12 @@ from sklearn.compose import make_column_transformer
 from sklearn.pipeline import Pipeline, make_pipeline
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# five_year_interval() — retourne l intervalle de 5 ans contenant une date
+#
+# Divise l annee de la date par 5, calcule le debut et la fin de l intervalle quinquennal.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def five_year_interval(x: datetime) -> str:
     """
     Retourne l'intervalle de 5 ans pour une date donnée.
@@ -56,6 +62,12 @@ def five_year_interval(x: datetime) -> str:
     else:
         return "2015-2020"
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# broadcast_addition() — addition par broadcasting matrice + vecteur
+#
+# Ajoute un vecteur ligne a chaque ligne d une matrice via une boucle Python pure.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def broadcast_addition(matrix: List[List[float]], vector: List[float]) -> List[List[float]]:
     """
@@ -86,6 +98,12 @@ def broadcast_addition(matrix: List[List[float]], vector: List[float]) -> List[L
     return new_matrix
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# estimate_pi() — estimation de pi par methode Monte Carlo
+#
+# Tire n points aleatoires dans le carre [-1,1]^2 et compte ceux dans le cercle unite.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def estimate_pi(n: int) -> float:
     """
     Estime la valeur de π en utilisant la méthode de Monte Carlo.
@@ -110,6 +128,12 @@ def estimate_pi(n: int) -> float:
     n_in_circle = np.sum(is_in_circle)  # nombre de points dans le cercle
     return (n_in_circle / n) * 4
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# sigmoid() — fonction d activation sigmoide sigma(x) = 1/(1+e^-x)
+#
+# Applique la sigmoide element par element. Accepte un scalaire ou un array NumPy.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def sigmoid(x: np.ndarray | float) -> np.ndarray | float:
     """
@@ -138,6 +162,12 @@ def sigmoid(x: np.ndarray | float) -> np.ndarray | float:
 
 
 # === Fonctions des Modules 5, 6, 7 === #
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_reg_lineaire() — regression lineaire OLS analytique beta=(X'X)^-1 X'y
+#
+# Ajoute une colonne d intercept, calcule la pseudo-inverse et retourne les coefficients beta.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_reg_lineaire(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
@@ -202,6 +232,12 @@ def fit_reg_lineaire(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     beta = np.matmul(c2, y)
 
     return beta  # Retourne le vecteur beta
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_reg_ridge() — regression Ridge analytique beta=(X'X+lambdaI)^-1 X'y
+#
+# Ajoute lambda*I a X'X avant inversion pour regulariser ; retourne les coefficients beta.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_reg_ridge(X: np.ndarray, y: np.ndarray, lambda_: float = 1) -> np.ndarray:
     """
@@ -277,6 +313,12 @@ def fit_reg_ridge(X: np.ndarray, y: np.ndarray, lambda_: float = 1) -> np.ndarra
 
     return beta  # retourne le vecteur beta
 
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_lasso() — regression Lasso par descente de gradient avec penalite L1
+#
+# Optimise les coefficients beta via update_weights() sur n_iterations avec seuillage doux.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def fit_lasso(X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float, n_iteration: int) -> tuple[float, np.ndarray]:
     """
     Estime les paramètres beta par la méthode de la descente de gradient pour Lasso.
@@ -318,6 +360,12 @@ def fit_lasso(X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float
             print(f"Itération {i+1:3d} : beta_0 = {beta_0:7.3f}  beta_j = {beta_j.round(3)}")
 
     return beta_0, beta_j
+
+# ──────────────────────────────────────────────────────────────────────────────
+# plot_decision_boundaries() — trace les frontieres de decision d un classifieur 2D
+#
+# Cree un meshgrid, predit la classe sur chaque point et affiche les zones colorees avec contourf.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def plot_decision_boundaries(
     clf: ClassifierMixin,
@@ -383,6 +431,12 @@ def plot_decision_boundaries(
     ax.set_yticks(())
     ax.set_title("Frontières de décision")
     return ax
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_and_plot_classification() — ajuste un classifieur et trace ses frontieres de decision
+#
+# Entraine le classifieur, appelle plot_decision_boundaries() et superpose les donnees reelles.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_and_plot_classification(
     modele: ClassifierMixin,
@@ -455,6 +509,12 @@ def fit_and_plot_classification(
     ax.set_title("Classification — frontières de décision")
     return ax
 
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_and_plot_regression() — ajuste et trace la courbe de regression 1D
+#
+# Entraine le modele sur X/y 1D, predit sur une grille reguliere et trace la courbe avec matplotlib.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def fit_and_plot_regression(
     modele: RegressorMixin,
     donnees: pd.DataFrame,
@@ -516,6 +576,12 @@ def fit_and_plot_regression(
     ax.set_ylabel(nom_cible)
     ax.set_title("Régression — fonction prédite (constante par morceaux)")
     return ax
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_model() — pipeline d entrainement avec preprocessing automatique
+#
+# Detecte les colonnes cat/num, applique imputation + encodage/scaling, entraine et evalue.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_model(
     X: pd.DataFrame,
@@ -599,6 +665,12 @@ __all__ = [
 # Fonctions d'entraînement des Modules 5-7
 # ====================================================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_reg_lineaire() — regression lineaire OLS analytique beta=(X'X)^-1 X'y (section Modules 5-7)
+#
+# Ajoute une colonne d intercept, calcule la pseudo-inverse et retourne les coefficients beta.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def fit_reg_lineaire(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
     Estime les paramètres beta de la régression linéaire via la méthode analytique (OLS).
@@ -662,6 +734,12 @@ def fit_reg_lineaire(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     beta = np.matmul(c2, y)
 
     return beta  # Retourne le vecteur beta
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_reg_ridge() — regression Ridge analytique beta=(X'X+lambdaI)^-1 X'y (section Modules 5-7)
+#
+# Ajoute lambda*I a X'X avant inversion pour regulariser et eviter la multicollinearite.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_reg_ridge(X: np.ndarray, y: np.ndarray, lambda_: float = 1) -> np.ndarray:
     """
@@ -737,6 +815,12 @@ def fit_reg_ridge(X: np.ndarray, y: np.ndarray, lambda_: float = 1) -> np.ndarra
 
     return beta  # retourne le vecteur beta
 
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_lasso() — regression Lasso par descente de gradient avec penalite L1 (section Modules 5-7)
+#
+# Optimise les coefficients beta par gradient iteratif avec update_weights() et seuillage doux.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def fit_lasso(X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float, n_iteration: int) -> tuple[float, np.ndarray]:
     """
     Estime les paramètres beta par la méthode de la descente de gradient pour Lasso.
@@ -778,6 +862,12 @@ def fit_lasso(X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float
             print(f"Itération {i+1:3d} : beta_0 = {beta_0:7.3f}  beta_j = {beta_j.round(3)}")
 
     return beta_0, beta_j
+
+# ──────────────────────────────────────────────────────────────────────────────
+# plot_decision_boundaries() — trace les frontieres de decision d un classifieur 2D (section Modules 5-7)
+#
+# Cree un meshgrid, predit sur chaque point et affiche les zones colorees avec contourf.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def plot_decision_boundaries(
     clf: ClassifierMixin,
@@ -843,6 +933,12 @@ def plot_decision_boundaries(
     ax.set_yticks(())
     ax.set_title("Frontières de décision")
     return ax
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_and_plot_classification() — ajuste et trace les frontieres de decision (section Modules 5-7)
+#
+# Entraine le classifieur, appelle plot_decision_boundaries() et superpose les donnees.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_and_plot_classification(
     modele: ClassifierMixin,
@@ -915,6 +1011,12 @@ def fit_and_plot_classification(
     ax.set_title("Classification — frontières de décision")
     return ax
 
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_and_plot_regression() — ajuste et trace la courbe de regression 1D (section Modules 5-7)
+#
+# Entraine le modele sur X/y 1D, predit sur une grille reguliere et trace avec matplotlib.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def fit_and_plot_regression(
     modele: RegressorMixin,
     donnees: pd.DataFrame,
@@ -976,6 +1078,12 @@ def fit_and_plot_regression(
     ax.set_ylabel(nom_cible)
     ax.set_title("Régression — fonction prédite (constante par morceaux)")
     return ax
+
+# ──────────────────────────────────────────────────────────────────────────────
+# fit_model() — pipeline d entrainement avec preprocessing automatique (section Modules 5-7)
+#
+# Impute, encode et entraine un classifieur ou regresseur selon le type de target.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def fit_model(
     X: pd.DataFrame,

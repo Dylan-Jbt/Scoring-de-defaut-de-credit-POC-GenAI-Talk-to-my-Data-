@@ -60,7 +60,7 @@ logs/
 *.log
 mlruns/
 outputs/
-reports/
+reports/*.md
 
 # ======================
 # Modèles sauvegardés (optionnel — à commenter si tu veux les inclure)

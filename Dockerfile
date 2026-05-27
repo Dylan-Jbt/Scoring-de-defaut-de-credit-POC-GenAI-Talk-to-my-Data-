@@ -15,8 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le reste de l'application
 COPY app/ /app/
-COPY utils/ /app/utils/
+COPY utils/ /utils/
 COPY data/ /app/data/
+COPY reports/figures/ /reports/figures/
 COPY models/best_model_pipeline.joblib /app/models/
 COPY models/best_model_metadata.json /app/models/
 

@@ -1,4 +1,13 @@
-"""Page de scoring de défaut de crédit — prédiction individuelle."""
+"""
+Page de scoring individuel — prédiction du défaut de crédit.
+
+Formulaire de saisie du profil d'un client → appel au pipeline Random Forest
+→ affichage de la probabilité de défaut (jauge Plotly) et recommandation d'action.
+
+Le pipeline (chargé depuis models/best_model_pipeline.joblib) inclut le
+pré-traitement et le modèle. Il attend exactement les colonnes de FEATURE_COLS
+(définies dans app/utils/data.py). Seuil de décision : p ≥ 0.5 → risque élevé.
+"""
 
 import sys
 from pathlib import Path
@@ -12,9 +21,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.charts import gauge_proba
 from utils.data import FEATURE_COLS, LABEL_MAPS, TARGET_COL, load_data, load_model
 
-# ── Config page ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Scoring Défaut", page_icon="💳", layout="wide")
-st.title("💳 Scoring de défaut de crédit")
+# ──────────────────────────────────────────────────────────────────────────────
+# Configuration de la page — titre, présentation et chargement du modèle
+#
+# set_page_config doit être le premier appel Streamlit du script.
+# load_model() charge le pipeline joblib une seule fois (mis en cache par @st.cache_resource).
+# ──────────────────────────────────────────────────────────────────────────────
+st.set_page_config(page_title="Scoring Défaut", page_icon=None, layout="wide")
+st.title("Scoring de défaut de crédit")
 st.markdown(
     "Renseignez le profil d'un client pour obtenir sa **probabilité estimée de défaut** "
     "au prochain mois, calculée par le modèle Random Forest optimisé."
@@ -22,7 +36,13 @@ st.markdown(
 
 model = load_model()
 
-# ── Formulaire de saisie ─────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Formulaire de saisie — profil client en 23 champs répartis sur 3 colonnes
+#
+# Tous les champs sont groupés dans un st.form : Streamlit ne rejoue le script
+# qu'à la soumission, évitant les rechargements à chaque interaction.
+# Les valeurs par défaut correspondent à un profil "client moyen" du dataset.
+# ──────────────────────────────────────────────────────────────────────────────
 with st.form("scoring_form"):
     st.subheader("Profil client")
     c1, c2, c3 = st.columns(3)
@@ -64,9 +84,15 @@ with st.form("scoring_form"):
     pay_amt_5 = pc5.number_input("pay_amt_5", min_value=0, value=2_000, step=500)
     pay_amt_6 = pc6.number_input("pay_amt_6", min_value=0, value=2_000, step=500)
 
-    submitted = st.form_submit_button("🔍 Calculer le score", use_container_width=True)
+    submitted = st.form_submit_button("Calculer le score", use_container_width=True)
 
-# ── Résultat ─────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Résultat du scoring — jauge Plotly et verdict textuel
+#
+# Exécuté uniquement si le formulaire a été soumis (submitted=True).
+# Le pipeline attend exactement les colonnes de FEATURE_COLS dans data.py.
+# Seuil de décision : p ≥ 0.5 → risque élevé (recouvrement préventif recommandé).
+# ──────────────────────────────────────────────────────────────────────────────
 if submitted:
     input_data = pd.DataFrame([{
         "limit_balance": limit_balance, "sex": sex,
@@ -91,13 +117,13 @@ if submitted:
     with col_verdict:
         st.markdown("### Verdict")
         if decision:
-            st.error(f"⚠️ **Risque élevé de défaut** — probabilité : {proba:.1%}")
+            st.error(f"**Risque élevé de défaut** — probabilité : {proba:.1%}")
             st.markdown(
                 "Ce client présente un profil à **relancer en priorité**. "
                 "Il est recommandé de déclencher une action de recouvrement préventif."
             )
         else:
-            st.success(f"✅ **Risque faible** — probabilité : {proba:.1%}")
+            st.success(f"**Risque faible** — probabilité : {proba:.1%}")
             st.markdown(
                 "Ce client ne présente pas de signal de défaut imminent "
                 "sur la base de son profil actuel."

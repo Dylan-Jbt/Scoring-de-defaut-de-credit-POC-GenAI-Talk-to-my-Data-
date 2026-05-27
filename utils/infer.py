@@ -12,6 +12,12 @@ import numpy as np
 from typing import Dict, List, Any
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_gains() — calcule le lift et la capture cumulée par décile
+#
+# Segmente les scores en n_deciles groupes décroissants et retourne pour
+# chaque décile : effectif, cibles, taux de réponse, lift et capture cumulée.
+# ──────────────────────────────────────────────────────────────────────────────
 def compute_gains(
     scores_array: np.ndarray,
     labels_array: np.ndarray,

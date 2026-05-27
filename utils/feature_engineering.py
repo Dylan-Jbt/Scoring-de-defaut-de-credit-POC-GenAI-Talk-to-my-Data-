@@ -10,6 +10,12 @@ import numpy as np
 import pandas as pd
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# feature_engineering() — enrichit le DataFrame avec des features dérivées
+#
+# Regroupe les modalités rares (éducation, statut marital), puis calcule
+# utilization_proxy, pay_trend, avg_pay_status et total_pay_amt.
+# ──────────────────────────────────────────────────────────────────────────────
 def feature_engineering(X: pd.DataFrame) -> pd.DataFrame:
     """
     Transforme le DataFrame brut en ajoutant des features dérivées.

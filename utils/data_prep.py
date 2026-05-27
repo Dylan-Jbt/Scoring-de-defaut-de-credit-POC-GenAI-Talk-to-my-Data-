@@ -34,6 +34,12 @@ except ImportError:
     Pipeline = None
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# process_user_bad() — valide et transforme les informations utilisateur
+#
+# Contrôle le nom, l’âge et l’email, normalise la casse et retourne None
+# si la validation échoue.
+# ──────────────────────────────────────────────────────────────────────────────
 def process_user_bad(name: str, age: int, email: str) -> Dict[str, Any] | None:
     """
     Valide et transforme les informations utilisateur.
@@ -72,6 +78,12 @@ def process_user_bad(name: str, age: int, email: str) -> Dict[str, Any] | None:
     return user
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# detect_possible_outliers() — détecte les outliers via la méthode IQR
+#
+# Calcule Q1, Q3 et l’IQR, puis identifie les indices des valeurs en dehors
+# des bornes Q1−1.5×IQR et Q3+1.5×IQR.
+# ──────────────────────────────────────────────────────────────────────────────
 def detect_possible_outliers(
     df: pd.DataFrame, 
     column: str
@@ -124,6 +136,12 @@ def detect_possible_outliers(
     return sorted(outliers_index), outer_lower, outer_upper
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# replace_outlier() — remplace une valeur aberrante par une valeur de seuil
+#
+# Si la valeur dépasse threshold, elle est substituée par replacement.
+# Utilisé pour le nettoyage unitaire de valeurs extrêmes.
+# ──────────────────────────────────────────────────────────────────────────────
 def replace_outlier(value: float, threshold: float = 20, replacement: float = 15) -> float:
     """
     Remplace les valeurs aberrantes par une valeur de remplacement.
@@ -145,6 +163,12 @@ def replace_outlier(value: float, threshold: float = 20, replacement: float = 15
     return value
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# currency() — formateur matplotlib pour les montants en euros (K€ / M€)
+#
+# Utilisé comme FuncFormatter dans matplotlib.ticker ; convertit une valeur
+# brute en chaîne lisible avec unité K€ ou M€ selon l’ordre de grandeur.
+# ──────────────────────────────────────────────────────────────────────────────
 def currency(x: float, pos: int) -> str:
     """
     Formate une valeur en devise euros (K€ ou M€).
@@ -167,6 +191,12 @@ def currency(x: float, pos: int) -> str:
     return pos
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# distance_km() — formateur matplotlib pour les distances en kilomètres
+#
+# Convertit une valeur brute en chaîne lisible avec unité k km ou M km
+# selon l’ordre de grandeur.
+# ──────────────────────────────────────────────────────────────────────────────
 def distance_km(x: float, pos: int) -> str:
     """
     Formate une distance en kilomètres (k km ou M km).
@@ -189,6 +219,12 @@ def distance_km(x: float, pos: int) -> str:
     return pos
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# standardize() — normalisation z-score d’un array NumPy
+#
+# Centre et réduit chaque colonne : soustrait la moyenne et divise par
+# l’écart-type (+ 1e-10 pour éviter la division par zéro).
+# ──────────────────────────────────────────────────────────────────────────────
 def standardize(array: np.ndarray) -> np.ndarray:
     """
     Standardise un array (normalisation z-score).
@@ -215,6 +251,12 @@ def standardize(array: np.ndarray) -> np.ndarray:
 
 # === Fonctions des Modules 5, 6, 7 === #
 
+# ──────────────────────────────────────────────────────────────────────────────
+# creer_features() — crée family_size et is_alone à partir du dataset Titanic
+#
+# Génère deux variables dérivées à partir de SibSp et Parch :
+# taille totale de la famille et indicateur voyage en solitaire.
+# ──────────────────────────────────────────────────────────────────────────────
 def creer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Crée de nouvelles variables à partir des variables existantes.
@@ -243,6 +285,12 @@ def creer_features(df: pd.DataFrame) -> pd.DataFrame:
     df_nouveau["is_alone"] = (df_nouveau['family_size'] == 1).astype(int)
 
     return df_nouveau
+
+# ──────────────────────────────────────────────────────────────────────────────
+# get_original_feature_names() — recupere les noms de features avant encodage dummy
+#
+# A partir de colonnes dummies (format feature___valeur), extrait les prefixes uniques.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def get_original_feature_names(
     dummies_features: List[str], separator: str = "___"
@@ -283,6 +331,13 @@ def get_original_feature_names(
             original_features.append(col)
     return np.unique(original_features).tolist()
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_gradient() — calcule le gradient Lasso avec pénalité L1
+#
+# Pour chaque coefficient beta_j, détermine la direction du gradient selon
+# le signe de beta_j. L'intercept beta_0 n'est pas pénalisé.
+# ──────────────────────────────────────────────────────────────────────────────
 def compute_gradient(beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, y_pred: np.ndarray, lambda_: float) -> tuple[float, np.ndarray]:
     """
     Calcule la dérivée de la fonction de perte en beta pour la régression Lasso.
@@ -329,6 +384,12 @@ def compute_gradient(beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, y_pred: n
 
     return grad_beta_0, grad_beta_j
 
+# ──────────────────────────────────────────────────────────────────────────────
+# update_weights() — met a jour les parametres par descente de gradient
+#
+# Predit y_pred, calcule le gradient via compute_gradient() puis applique beta = beta - lr*grad.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def update_weights(beta_0: float, beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float) -> tuple[float, np.ndarray]:
     """
     Met à jour les paramètres beta en utilisant le gradient et la valeur précédente de beta.
@@ -370,6 +431,12 @@ def update_weights(beta_0: float, beta_j: np.ndarray, X: np.ndarray, y: np.ndarr
     beta_0 = beta_0 - learning_rate * grad_beta_0
 
     return beta_0, beta_j
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cercle_correlations() — trace le cercle des correlations ACP via Plotly
+#
+# Genere des fleches pour chaque variable (loadings) et un cercle unitaire pour l ACP.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cercle_correlations(pca: PCA, dim_x: int, dim_y: int, features: List[str]) -> None:
     """
@@ -477,6 +544,12 @@ def cercle_correlations(pca: PCA, dim_x: int, dim_y: int, features: List[str]) -
     # Création et affichage de la figure
     fig = go.Figure(data=arrows, layout=layout)
     fig.show()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# tracer_courbes_apprentissage() — courbes d apprentissage train vs validation croisee
+#
+# Calcule les scores train/CV pour des tailles croissantes et trace avec bandes d incertitude.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def tracer_courbes_apprentissage(
     modele,
@@ -611,6 +684,12 @@ def tracer_courbes_apprentissage(
 
     return ax, stats
 
+# ──────────────────────────────────────────────────────────────────────────────
+# creation_variables() — cree taille_famille et est_seul pour le dataset Titanic
+#
+# Genere deux variables derivees a partir de SibSp et Parch : taille_famille et est_seul.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def creation_variables(df: pd.DataFrame) -> pd.DataFrame:
     """
     Crée des variables dérivées pour enrichir le dataset Titanic.
@@ -629,6 +708,12 @@ def creation_variables(df: pd.DataFrame) -> pd.DataFrame:
     df_nouveau['taille_famille'] = df_nouveau['SibSp'] + df_nouveau['Parch'] + 1
     df_nouveau["est_seul"] = (df_nouveau['taille_famille'] == 1).astype(int)
     return df_nouveau
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cramer_v_coeff() — coefficient V de Cramer entre deux Series (tuple)
+#
+# Calcule le V de Cramer et la p-value du test khi-deux entre deux variables categorielles.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cramer_v_coeff(x: pd.Series, y: pd.Series) -> tuple[float, float]:
     """
@@ -669,6 +754,12 @@ def cramer_v_coeff(x: pd.Series, y: pd.Series) -> tuple[float, float]:
 
     return cramer, p_value
 
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_cramer_v() — matrice des V de Cramer pour toutes les paires
+#
+# Itere sur toutes les paires de colonnes et remplit une matrice symetrique de V de Cramer.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def compute_cramer_v(data: pd.DataFrame) -> pd.DataFrame:
     """
     Calcule la matrice des V de Cramer pour toutes les paires de variables.
@@ -695,6 +786,12 @@ def compute_cramer_v(data: pd.DataFrame) -> pd.DataFrame:
             cramer_matrix[j, i] = v_cramer
 
     return pd.DataFrame(cramer_matrix, columns=cols, index=cols)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cramer_v_coeff() — coefficient V de Cramer entre deux Series (Tuple)
+#
+# Calcule le V de Cramer et la p-value du test khi-deux entre deux variables categorielles.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cramer_v_coeff(x: pd.Series, y: pd.Series) -> Tuple[float, float]:
     """
@@ -735,6 +832,12 @@ def cramer_v_coeff(x: pd.Series, y: pd.Series) -> Tuple[float, float]:
 
     return cramer, p_value
 
+# ──────────────────────────────────────────────────────────────────────────────
+# categorical_to_discrete() — encode les variables categorielles en entiers
+#
+# Applique code_dic (dictionnaire de mapping) sur chaque colonne de la liste cat_cols.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def categorical_to_discrete(data: pd.DataFrame, cat_cols: List[str]) -> pd.DataFrame:
     """
     Encode les variables catégorielles en variables discrètes.
@@ -756,6 +859,12 @@ def categorical_to_discrete(data: pd.DataFrame, cat_cols: List[str]) -> pd.DataF
         data_encoded[col] = data_encoded[col].map(code_dic)
     return data_encoded
 
+# ──────────────────────────────────────────────────────────────────────────────
+# load_scoring_data() — charge le dataset de scoring bancaire depuis URL
+#
+# Lit un CSV separe par ; depuis l URL fournie en parametre (defaut : dataset bank-additional).
+# ──────────────────────────────────────────────────────────────────────────────
+
 def load_scoring_data(
     url: str = "https://raw.githubusercontent.com/datagong/data/main/bank-additional-full.csv",
 ) -> pd.DataFrame:
@@ -773,6 +882,12 @@ def load_scoring_data(
         DataFrame contenant les données brutes.
     """
     return pd.read_csv(filepath_or_buffer=url, sep=";")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# get_column_types() — identifie colonnes categorielles et numeriques
+#
+# Retourne trois listes : cat_cols, num_cols et all_cols a partir des dtypes du DataFrame.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def get_column_types(X: pd.DataFrame) -> Tuple[List[str], List[str], List[str]]:
     """
@@ -794,6 +909,12 @@ def get_column_types(X: pd.DataFrame) -> Tuple[List[str], List[str], List[str]]:
     num_cols = X.select_dtypes(include=np.number).columns.tolist()
     all_cols = X.columns.tolist()
     return cat_cols, num_cols, all_cols
+
+# ──────────────────────────────────────────────────────────────────────────────
+# model_evaluation() — evalue AUC train/test d un pipeline sklearn
+#
+# Appelle predict_proba sur train et test, calcule roc_auc_score pour chaque jeu.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def model_evaluation(
     model: Pipeline,
@@ -832,6 +953,12 @@ def model_evaluation(
     auc_test = roc_auc_score(y_test, y_test_pred)
 
     return auc_train, auc_test
+
+# ──────────────────────────────────────────────────────────────────────────────
+# lift_curve_data() — calcule les donnees pour la courbe de lift
+#
+# Trie les observations par score decroissant, decoupe en percentiles et calcule la concentration.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def lift_curve_data(
     y_true: np.ndarray | pd.Series,
@@ -892,6 +1019,12 @@ def lift_curve_data(
     lift_df = pd.concat([zeros_df, lift_df]).reset_index(drop=True)
 
     return lift_df
+
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_lift_by_decile() — calcule le lift par decile
+#
+# Trie par score decroissant, decoupe en n_deciles et calcule lift + capture cumulee par decile.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def compute_lift_by_decile(
     scores: np.ndarray,
@@ -964,6 +1097,12 @@ __all__ = [
 # Fonctions utilitaires - Modules 5-7
 # ====================================================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_gradient() — calcule le gradient Lasso avec penalite L1 (section Modules 5-7)
+#
+# Pour chaque beta_j, determine la direction du gradient selon son signe. beta_0 non penalise.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def compute_gradient(beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, y_pred: np.ndarray, lambda_: float) -> tuple[float, np.ndarray]:
     """
     Calcule la dérivée de la fonction de perte en beta pour la régression Lasso.
@@ -1010,6 +1149,12 @@ def compute_gradient(beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, y_pred: n
 
     return grad_beta_0, grad_beta_j
 
+# ──────────────────────────────────────────────────────────────────────────────
+# update_weights() — met a jour les parametres par descente de gradient (section Modules 5-7)
+#
+# Predit y_pred, calcule le gradient via compute_gradient() puis applique beta = beta - lr*grad.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def update_weights(beta_0: float, beta_j: np.ndarray, X: np.ndarray, y: np.ndarray, lambda_: float, learning_rate: float) -> tuple[float, np.ndarray]:
     """
     Met à jour les paramètres beta en utilisant le gradient et la valeur précédente de beta.
@@ -1051,6 +1196,12 @@ def update_weights(beta_0: float, beta_j: np.ndarray, X: np.ndarray, y: np.ndarr
     beta_0 = beta_0 - learning_rate * grad_beta_0
 
     return beta_0, beta_j
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cercle_correlations() — trace le cercle des correlations ACP via Plotly (section Modules 5-7)
+#
+# Genere des fleches (loadings) et un cercle unitaire pour visualiser les variables ACP.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cercle_correlations(pca: PCA, dim_x: int, dim_y: int, features: List[str]) -> None:
     """
@@ -1158,6 +1309,12 @@ def cercle_correlations(pca: PCA, dim_x: int, dim_y: int, features: List[str]) -
     # Création et affichage de la figure
     fig = go.Figure(data=arrows, layout=layout)
     fig.show()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# tracer_courbes_apprentissage() — courbes apprentissage train vs validation (section Modules 5-7)
+#
+# Calcule les scores train/CV pour des tailles croissantes et trace avec bandes d incertitude.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def tracer_courbes_apprentissage(
     modele,
@@ -1292,6 +1449,12 @@ def tracer_courbes_apprentissage(
 
     return ax, stats
 
+# ──────────────────────────────────────────────────────────────────────────────
+# creation_variables() — cree taille_famille et est_seul (section Modules 5-7)
+#
+# Genere deux variables derivees a partir de SibSp et Parch pour le dataset Titanic.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def creation_variables(df: pd.DataFrame) -> pd.DataFrame:
     """
     Crée des variables dérivées pour enrichir le dataset Titanic.
@@ -1310,6 +1473,12 @@ def creation_variables(df: pd.DataFrame) -> pd.DataFrame:
     df_nouveau['taille_famille'] = df_nouveau['SibSp'] + df_nouveau['Parch'] + 1
     df_nouveau["est_seul"] = (df_nouveau['taille_famille'] == 1).astype(int)
     return df_nouveau
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cramer_v_coeff() — coefficient V de Cramer (tuple, section Modules 5-7)
+#
+# Calcule le V de Cramer et la p-value du test khi-deux entre deux Series categorielles.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cramer_v_coeff(x: pd.Series, y: pd.Series) -> tuple[float, float]:
     """
@@ -1350,6 +1519,12 @@ def cramer_v_coeff(x: pd.Series, y: pd.Series) -> tuple[float, float]:
 
     return cramer, p_value
 
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_cramer_v() — matrice des V de Cramer pour toutes les paires (section Modules 5-7)
+#
+# Itere sur toutes les paires de colonnes et remplit une matrice symetrique de V de Cramer.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def compute_cramer_v(data: pd.DataFrame) -> pd.DataFrame:
     """
     Calcule la matrice des V de Cramer pour toutes les paires de variables.
@@ -1376,6 +1551,12 @@ def compute_cramer_v(data: pd.DataFrame) -> pd.DataFrame:
             cramer_matrix[j, i] = v_cramer
 
     return pd.DataFrame(cramer_matrix, columns=cols, index=cols)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# cramer_v_coeff() — coefficient V de Cramer (Tuple, section Modules 5-7)
+#
+# Calcule le V de Cramer et la p-value du test khi-deux entre deux Series categorielles.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def cramer_v_coeff(x: pd.Series, y: pd.Series) -> Tuple[float, float]:
     """
@@ -1416,6 +1597,12 @@ def cramer_v_coeff(x: pd.Series, y: pd.Series) -> Tuple[float, float]:
 
     return cramer, p_value
 
+# ──────────────────────────────────────────────────────────────────────────────
+# categorical_to_discrete() — encode les variables categorielles en entiers (section Modules 5-7)
+#
+# Applique code_dic (dictionnaire de mapping) sur chaque colonne de cat_cols.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def categorical_to_discrete(data: pd.DataFrame, cat_cols: List[str]) -> pd.DataFrame:
     """
     Encode les variables catégorielles en variables discrètes.
@@ -1437,6 +1624,12 @@ def categorical_to_discrete(data: pd.DataFrame, cat_cols: List[str]) -> pd.DataF
         data_encoded[col] = data_encoded[col].map(code_dic)
     return data_encoded
 
+# ──────────────────────────────────────────────────────────────────────────────
+# load_scoring_data() — charge le dataset de scoring bancaire depuis URL (section Modules 5-7)
+#
+# Lit un CSV separe par ; depuis l URL fournie en parametre (defaut : dataset bank-additional).
+# ──────────────────────────────────────────────────────────────────────────────
+
 def load_scoring_data(
     url: str = "https://raw.githubusercontent.com/datagong/data/main/bank-additional-full.csv",
 ) -> pd.DataFrame:
@@ -1454,6 +1647,12 @@ def load_scoring_data(
         DataFrame contenant les données brutes.
     """
     return pd.read_csv(filepath_or_buffer=url, sep=";")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# get_column_types() — identifie colonnes categorielle et numeriques (section Modules 5-7)
+#
+# Retourne trois listes : cat_cols, num_cols et all_cols a partir des dtypes du DataFrame.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def get_column_types(X: pd.DataFrame) -> Tuple[List[str], List[str], List[str]]:
     """
@@ -1475,6 +1674,12 @@ def get_column_types(X: pd.DataFrame) -> Tuple[List[str], List[str], List[str]]:
     num_cols = X.select_dtypes(include=np.number).columns.tolist()
     all_cols = X.columns.tolist()
     return cat_cols, num_cols, all_cols
+
+# ──────────────────────────────────────────────────────────────────────────────
+# model_evaluation() — evalue AUC train/test d un pipeline sklearn (section Modules 5-7)
+#
+# Appelle predict_proba sur train et test, calcule roc_auc_score pour chaque jeu.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def model_evaluation(
     model: Pipeline,
@@ -1513,6 +1718,12 @@ def model_evaluation(
     auc_test = roc_auc_score(y_test, y_test_pred)
 
     return auc_train, auc_test
+
+# ──────────────────────────────────────────────────────────────────────────────
+# lift_curve_data() — calcule les donnees pour la courbe de lift (section Modules 5-7)
+#
+# Trie les observations par score decroissant, decoupe en percentiles et calcule la concentration.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def lift_curve_data(
     y_true: np.ndarray | pd.Series,
@@ -1573,6 +1784,12 @@ def lift_curve_data(
     lift_df = pd.concat([zeros_df, lift_df]).reset_index(drop=True)
 
     return lift_df
+
+# ──────────────────────────────────────────────────────────────────────────────
+# compute_lift_by_decile() — calcule le lift par decile (section Modules 5-7)
+#
+# Trie par score decroissant, decoupe en n_deciles et calcule lift + capture cumulee.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def compute_lift_by_decile(
     scores: np.ndarray,
@@ -1636,6 +1853,12 @@ def compute_lift_by_decile(
 # Sélection de features - Modules 6-7
 # ====================================================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# creer_features() — cree family_size et is_alone (section Modules 6-7)
+#
+# Genere deux variables derivees a partir de SibSp et Parch : taille famille et est_seul.
+# ──────────────────────────────────────────────────────────────────────────────
+
 def creer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Crée de nouvelles variables à partir des variables existantes.
@@ -1664,6 +1887,12 @@ def creer_features(df: pd.DataFrame) -> pd.DataFrame:
     df_nouveau["is_alone"] = (df_nouveau['family_size'] == 1).astype(int)
 
     return df_nouveau
+
+# ──────────────────────────────────────────────────────────────────────────────
+# get_original_feature_names() — recupere les noms originaux avant encodage (section Modules 6-7)
+#
+# A partir de colonnes dummies (format feature___valeur), extrait les prefixes uniques.
+# ──────────────────────────────────────────────────────────────────────────────
 
 def get_original_feature_names(
     dummies_features: List[str], separator: str = "___"

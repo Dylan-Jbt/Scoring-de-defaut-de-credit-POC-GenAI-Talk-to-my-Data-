@@ -19,6 +19,12 @@ except ImportError:
     from sklearn.metrics import calibration_curve
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# process() — transformation linéaire d’une liste par un facteur
+#
+# Multiplie chaque élément de la liste par un facteur scalaire.
+# Fonction utilitaire de base utilisée dans les modules d’exercices.
+# ──────────────────────────────────────────────────────────────────────────────
 def process(data: List[float], factor: float) -> List[float]:
     """
     Applique une transformation linéaire à une liste de données.
@@ -39,6 +45,12 @@ def process(data: List[float], factor: float) -> List[float]:
     return [x * factor for x in data]
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# evaluate_model() — évalue un modèle sur les jeux train et test
+#
+# Calcule l’AUC-ROC ou l’accuracy sur les deux jeux selon la métrique
+# demandée, et retourne un tuple (score_train, score_test).
+# ──────────────────────────────────────────────────────────────────────────────
 def evaluate_model(
     model: Any,
     X_train: pd.DataFrame,
@@ -85,6 +97,12 @@ def evaluate_model(
     return train_score, test_score
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# confusion_matrix_metrics() — métriques détaillées de la matrice de confusion
+#
+# Calcule TP, FP, TN, FN, puis en dérive Sensitivity, Specificity,
+# Precision et F1 pour une analyse complète des erreurs de classification.
+# ──────────────────────────────────────────────────────────────────────────────
 def confusion_matrix_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray
@@ -127,6 +145,12 @@ def confusion_matrix_metrics(
     }
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# calculate_roc_auc() — calcule l’AUC-ROC d’un modèle de scoring
+#
+# Encapsule sklearn.metrics.roc_auc_score ; retourne un score entre 0.5
+# (aléatoire) et 1.0 (prédictions parfaites).
+# ──────────────────────────────────────────────────────────────────────────────
 def calculate_roc_auc(
     y_true: np.ndarray,
     y_pred_proba: np.ndarray
@@ -156,6 +180,12 @@ def calculate_roc_auc(
     return roc_auc_score(y_true, y_pred_proba)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# calculate_lift() — calcule le lift pour un percentile donné
+#
+# Isole les clients au-dessus du seuil du percentile et compare leur taux
+# de réponse au taux global pour mesurer le gain de ciblage.
+# ──────────────────────────────────────────────────────────────────────────────
 def calculate_lift(
     y_true: np.ndarray,
     y_pred_proba: np.ndarray,
@@ -202,6 +232,12 @@ def calculate_lift(
 
 # === Fonctions des Modules 5, 6, 7 === #
 
+# ──────────────────────────────────────────────────────────────────────────────
+# score_spiegelhalter() — score de calibration de Spiegelhalter
+#
+# Évalue la calibration d’un modèle : une valeur proche de 0 indique que
+# les probabilités prédites reflètent fidèlement la réalité observée.
+# ──────────────────────────────────────────────────────────────────────────────
 def score_spiegelhalter(
     y_true: np.ndarray | pd.Series,
     y_pred: np.ndarray
@@ -246,6 +282,12 @@ __all__ = [
 # Fonctions de métriques des Modules 7
 # ====================================================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# score_spiegelhalter() — score de calibration de Spiegelhalter (module 7)
+#
+# Copie de la version précédente utilisée dans les modules d’exercices
+# avec la même logique de calcul.
+# ──────────────────────────────────────────────────────────────────────────────
 def score_spiegelhalter(
     y_true: np.ndarray | pd.Series,
     y_pred: np.ndarray
@@ -281,6 +323,12 @@ def score_spiegelhalter(
 # Fonctions de calibration du Module 7
 # ====================================================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# sklearn_calibration() — courbe de calibration par quantiles via scikit-learn
+#
+# Découpe les probabilités prédites en n_bins intervalles de taille égale
+# et retourne un DataFrame (prob_pred, prob_true) pour tracer la courbe.
+# ──────────────────────────────────────────────────────────────────────────────
 def sklearn_calibration(
     y_true: np.ndarray | pd.Series,
     y_pred: np.ndarray,

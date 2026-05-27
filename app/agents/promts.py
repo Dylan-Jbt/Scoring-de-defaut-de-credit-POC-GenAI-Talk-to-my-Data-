@@ -2,7 +2,20 @@
 Prompts système pour l'agent "Talk to my Data".
 
 Chaque constante est un prompt prêt à être passé au paramètre `system_prompt`
-de `create_agent` 
+de `create_agent()` dans agent.py.
+
+Constantes disponibles :
+    SYSTEM_PROMPT                   — prompt principal utilisé en production ;
+                                      l'agent connaît les outils, le format de réponse
+                                      attendu et le contexte métier du dataset
+    SYSTEM_PROMPT_WITH_MODEL_CONTEXT — variante enrichie avec les métriques du modèle
+                                      ML (PR-AUC, ROC-AUC, F1…) ; à utiliser si
+                                      l'agent doit répondre à des questions sur les
+                                      performances du scoring
+
+Pour modifier le comportement de l'agent (langue, format, outils autorisés…),
+éditez uniquement ces prompts — la logique d'orchestration (outils, mémoire)
+reste dans agent.py et tools.py.
 """
 
 # =============================================================================

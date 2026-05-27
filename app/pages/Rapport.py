@@ -1,4 +1,16 @@
-"""Page de rapport du modèle — métriques, figures et analyse par décile."""
+"""
+Page de rapport du modèle — métriques, figures et analyse par décile.
+
+Affiche les résultats du Random Forest optimisé sur le jeu de test :
+  - Métriques globales : PR-AUC (métrique principale sur dataset déséquilibré),
+    ROC-AUC, F1, Recall, Precision
+  - Courbes de lift et de capture par décile (ciblage des actions de recouvrement)
+  - Figures générées lors de l'entraînement (reports/figures/)
+  - Comparaison de plusieurs modèles (depuis best_model_metadata.json)
+
+Les données du rapport proviennent de models/best_model_metadata.json (métadonnées
+du modèle) et du recalcul à la volée des scores sur le dataset complet.
+"""
 
 import sys
 from pathlib import Path
@@ -14,6 +26,13 @@ from utils.data import FEATURE_COLS, TARGET_COL, load_data, load_metadata, load_
 _APP  = Path(__file__).resolve().parents[1]   # app/
 _ROOT = _APP.parent                            # racine du projet
 
+# ──────────────────────────────────────────────────────────────────────────────
+# _find_figures() — localise le dossier des figures du rapport
+#
+# Cherche reports/figures/ dans app/ puis à la racine du projet.
+# Retourne le premier chemin existant, ou app/reports/figures/ par défaut
+# (même si vide) — les sections concernant les figures gèreront l'absence.
+# ──────────────────────────────────────────────────────────────────────────────
 def _find_figures() -> Path:
     for base in (_APP, _ROOT):
         p = base / "reports" / "figures"
@@ -23,9 +42,13 @@ def _find_figures() -> Path:
 
 _FIGURES = _find_figures()
 
-# ── Config page ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Rapport modèle", page_icon="📊", layout="wide")
-st.title("📊 Rapport du modèle")
+# ──────────────────────────────────────────────────────────────────────────────
+# Configuration de la page — titre, présentation et chargement des ressources
+#
+# Charge métadonnées (JSON), pipeline joblib et dataset CSV en une seule passe.
+# ──────────────────────────────────────────────────────────────────────────────
+st.set_page_config(page_title="Rapport modèle", page_icon=None, layout="wide")
+st.title("Rapport du modèle")
 st.markdown(
     "Synthèse des performances du **Random Forest optimisé** entraîné pour la prédiction "
     "du défaut de crédit (jeu de test retenu, jamais vu pendant l'entraînement)."
@@ -35,11 +58,16 @@ meta  = load_metadata()
 model = load_model()
 df    = load_data()
 
-# ── KPIs métriques ───────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# KPIs métriques — 5 scores du Random Forest sur le jeu de test
+#
+# Données issues de models/best_model_metadata.json (clé "metrics_xtest").
+# PR-AUC est la métrique principale sur ce dataset déséquilibré (~22 % de défauts).
+# ──────────────────────────────────────────────────────────────────────────────
 st.subheader("Métriques sur le jeu de test")
 m = meta["metrics_xtest"]
 k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("PR-AUC ⭐", f"{m['PR-AUC']:.4f}")
+k1.metric("PR-AUC", f"{m['PR-AUC']:.4f}")
 k2.metric("ROC-AUC",  f"{m['ROC-AUC']:.4f}")
 k3.metric("F1-Score",  f"{m['F1']:.4f}")
 k4.metric("Recall",    f"{m['Recall']:.4f}")
@@ -53,15 +81,25 @@ st.caption(
 
 st.divider()
 
-# ── Onglets ───────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglets — 4 vues du rapport : hyperparamètres, lift, figures, comparaison
+#
+# Les calculs lourds (predict_proba sur l'ensemble du dataset) sont réalisés
+# uniquement dans l'onglet Lift, à la demande de l'utilisateur.
+# ──────────────────────────────────────────────────────────────────────────────
 tab_params, tab_lift, tab_figs, tab_compare = st.tabs([
-    "⚙️ Hyperparamètres",
-    "📈 Lift & Capture",
-    "🖼️ Figures d'analyse",
-    "🔬 Comparaison modèles",
+    "Hyperparamètres",
+    "Lift & Capture",
+    "Figures d'analyse",
+    "Comparaison modèles",
 ])
 
-# ─ Onglet 1 : hyperparamètres ────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 1 — Hyperparamètres : meilleurs paramètres et importance des features
+#
+# Paramètres extraits du JSON (best_params). Importance des features calculée
+# depuis model.named_steps["model"].feature_importances_ (Random Forest).
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_params:
     st.markdown("**Meilleurs hyperparamètres (GridSearchCV / RandomSearch)**")
     params_df = (
@@ -82,7 +120,13 @@ with tab_params:
     except Exception:
         st.info("Importance des features non disponible pour ce pipeline.")
 
-# ─ Onglet 2 : lift & capture ─────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 2 — Lift & Capture : évaluation du ciblage par décile
+#
+# predict_proba() est appelé sur le dataset complet pour classer les clients
+# par score décroissant. Le calcul est délégué à utils/infer.py (compute_gains)
+# avec un fallback inline si l'import échoue.
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_lift:
     st.markdown(
         "Le **lift** mesure combien de fois le modèle fait mieux que le ciblage aléatoire. "
@@ -101,12 +145,10 @@ with tab_lift:
         from infer import compute_gains
         df_gains = compute_gains(scores, y, n_deciles=10)
     except Exception:
-        import pandas as pd
         global_rate = y.mean()
         total = y.sum()
-        import pandas as _pd
-        _df = _pd.DataFrame({"score": scores, "label": y})
-        _df["decile"] = _pd.qcut(_df["score"], q=10, labels=False, duplicates="drop")
+        _df = pd.DataFrame({"score": scores, "label": y})
+        _df["decile"] = pd.qcut(_df["score"], q=10, labels=False, duplicates="drop")
         _df["decile"] = 9 - _df["decile"]
         rows, cumul = [], 0
         for d in sorted(_df["decile"].unique()):
@@ -121,7 +163,7 @@ with tab_lift:
                 "Lift": (n_t / len(sub) / global_rate) if len(sub) else 0,
                 "Capture_Cumul": cumul / total if total else 0,
             })
-        df_gains = _pd.DataFrame(rows)
+        df_gains = pd.DataFrame(rows)
 
     c1, c2 = st.columns(2)
     with c1:
@@ -139,7 +181,12 @@ with tab_lift:
         use_container_width=True,
     )
 
-# ─ Onglet 3 : figures d'analyse ─────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 3 — Figures d'analyse : visualisations générées à l'entraînement
+#
+# Selectbox parmi 15 figures PNG stockées dans reports/figures/.
+# _FIGURES contient le chemin résolu par _find_figures() au chargement du module.
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_figs:
     fig_map = {
         "Distribution de la cible":           "01_target_distribution.png",
@@ -166,7 +213,11 @@ with tab_figs:
     else:
         st.warning(f"Figure non trouvée : `{img_path.name}`")
 
-# ─ Onglet 4 : comparaison modèles ───────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 4 — Comparaison modèles : figures de baseline et de tuning
+#
+# 6 figures comparant LR, RF et XGB avant et après optimisation.
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_compare:
     st.markdown(
         "Comparaison des performances des modèles évalués avant et après optimisation. "

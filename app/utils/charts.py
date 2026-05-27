@@ -10,6 +10,12 @@ _SECONDARY = "#5B9BD5"
 _PALETTE   = [_PRIMARY, _DANGER]
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# pie_target() — camembert répartition défaut / non-défaut
+#
+# Compte les effectifs de la variable cible et les affiche en camembert
+# Plotly avec un anneau central (hole=0.45).
+# ──────────────────────────────────────────────────────────────────────────────
 def pie_target(df: pd.DataFrame, target_col: str = "default_payment_next_month") -> go.Figure:
     """Camembert répartition défaut / non-défaut."""
     counts = df[target_col].value_counts().rename({0: "Non-défaut", 1: "Défaut"})
@@ -24,6 +30,12 @@ def pie_target(df: pd.DataFrame, target_col: str = "default_payment_next_month")
     return fig
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# bar_default_rate() — taux de défaut par catégorie d’une variable
+#
+# Groupe le DataFrame par la colonne cible, calcule le taux de défaut
+# moyen par modalité et applique optionnellement un dictionnaire de labels.
+# ──────────────────────────────────────────────────────────────────────────────
 def bar_default_rate(df: pd.DataFrame, col: str, label_map: dict | None = None) -> go.Figure:
     """Taux de défaut par catégorie d'une variable."""
     grp = df.groupby(col)["default_payment_next_month"].mean().reset_index()
@@ -46,6 +58,12 @@ def bar_default_rate(df: pd.DataFrame, col: str, label_map: dict | None = None) 
     return fig
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# hist_numeric() — histogramme d’une variable numérique coloré par cible
+#
+# Superpose deux histogrammes (Défaut / Non-défaut) en mode overlay
+# pour visualiser la distribution d’une feature continue selon la cible.
+# ──────────────────────────────────────────────────────────────────────────────
 def hist_numeric(df: pd.DataFrame, col: str, target_col: str = "default_payment_next_month") -> go.Figure:
     """Histogramme d'une variable numérique, coloré par cible."""
     _df = df.copy()
@@ -61,6 +79,12 @@ def hist_numeric(df: pd.DataFrame, col: str, target_col: str = "default_payment_
     return fig
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# gauge_proba() — jauge Plotly de la probabilité de défaut
+#
+# Affiche un indicateur Indicator avec zones colorées (vert / orange / rouge).
+# La couleur de la barre passe au rouge dès que proba ≥ 0.5.
+# ──────────────────────────────────────────────────────────────────────────────
 def gauge_proba(proba: float) -> go.Figure:
     """Jauge de probabilité de défaut."""
     color = _DANGER if proba >= 0.5 else _PRIMARY
@@ -82,6 +106,12 @@ def gauge_proba(proba: float) -> go.Figure:
     return fig
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# bar_lift() — graphique en barres du lift par décile
+#
+# Représente chaque décile avec son lift et trace une ligne horizontale
+# pointillée à y=1 correspondant à la performance aléatoire.
+# ──────────────────────────────────────────────────────────────────────────────
 def bar_lift(df_gains: pd.DataFrame) -> go.Figure:
     """Graphique en barres du lift par décile."""
     fig = px.bar(
@@ -94,6 +124,12 @@ def bar_lift(df_gains: pd.DataFrame) -> go.Figure:
     return fig
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# line_capture() — courbe de capture cumulée (% de la cible vs. décile)
+#
+# Superpose la courbe modèle (Capture_Cumul) et une droite aléatoire
+# en pointillés rouges pour visualiser le gain de ciblage.
+# ──────────────────────────────────────────────────────────────────────────────
 def line_capture(df_gains: pd.DataFrame) -> go.Figure:
     """Courbe de capture cumulée."""
     fig = go.Figure()

@@ -1,4 +1,15 @@
-"""Page d'exploration des données (EDA)."""
+"""
+Page d'exploration des données (EDA).
+
+Permet d'explorer le dataset de défaut de crédit de manière interactive :
+  - Filtres sidebar : sexe, niveau d'éducation, tranche d'âge
+  - KPIs en temps réel sur la population filtrée
+  - Onglets : variable cible, socio-démographie, finances,
+              historique de paiement, données brutes
+
+Toutes les visualisations utilisent Plotly Express (graphiques interactifs).
+Les libellés des modalités (sex, education_level…) sont traduits via LABEL_MAPS.
+"""
 
 import sys
 from pathlib import Path
@@ -11,9 +22,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.charts import bar_default_rate, hist_numeric, pie_target
 from utils.data import LABEL_MAPS, TARGET_COL, load_data
 
-# ── Config page ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Exploration", page_icon="🔎", layout="wide")
-st.title("🔎 Exploration des données")
+# ──────────────────────────────────────────────────────────────────────────────
+# Configuration de la page — titre, présentation et chargement du dataset
+#
+# set_page_config doit être le premier appel Streamlit du script.
+# load_data() lit le CSV une seule fois (mis en cache par @st.cache_data dans data.py).
+# ──────────────────────────────────────────────────────────────────────────────
+st.set_page_config(page_title="Exploration", page_icon=None, layout="wide")
+st.title("Exploration des données")
 st.markdown(
     "Dataset : **2 965 lignes · 26 colonnes** — Défaut de carte de crédit "
     "(*BigQuery ML datasets*). Variable cible : `default_payment_next_month` (0/1)."
@@ -21,7 +37,13 @@ st.markdown(
 
 df = load_data()
 
-# ── Sidebar — filtres ────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Sidebar — filtres interactifs sur la population
+#
+# Trois filtres indépendants (sexe, éducation, tranche d'âge) combinés
+# par boolean indexing. df_f est le sous-ensemble filtré utilisé par
+# tous les graphiques et métriques ci-dessous.
+# ──────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.header("Filtres")
     sex_opts = st.multiselect("Sexe", options=[1, 2],
@@ -40,7 +62,12 @@ df_f = df[
 
 st.caption(f"Données filtrées : **{len(df_f):,}** clients")
 
-# ── KPIs ─────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# KPIs dynamiques — résumé de la population filtrée
+#
+# 4 métriques recalculées en temps réel à chaque changement de filtre :
+# volume total, nombre de défauts, taux de défaut et âge médian.
+# ──────────────────────────────────────────────────────────────────────────────
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Clients", f"{len(df_f):,}")
 k2.metric("Défauts", f"{df_f[TARGET_COL].sum():,}")
@@ -49,16 +76,25 @@ k4.metric("Âge médian", f"{df_f['age'].median():.0f} ans")
 
 st.divider()
 
-# ── Onglets ───────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglets de visualisation — 5 vues complémentaires du dataset filtré
+#
+# Chaque onglet analyse un axe différent : variable cible, socio-démographie,
+# finances, historique de paiement et données brutes. Tous opèrent sur df_f.
+# ──────────────────────────────────────────────────────────────────────────────
 tab_cible, tab_socio, tab_fin, tab_paiement, tab_raw = st.tabs([
-    "🎯 Variable cible",
-    "👤 Socio-démographie",
-    "💰 Finances",
-    "📅 Historique paiement",
-    "📋 Données brutes",
+    "Variable cible",
+    "Socio-démographie",
+    "Finances",
+    "Historique paiement",
+    "Données brutes",
 ])
 
-# ─ Onglet 1 : cible ──────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 1 — Variable cible : répartition des défauts et non-défauts
+#
+# Deux vues : camembert (proportions globales) et bar chart (counts 0/1).
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_cible:
     c1, c2 = st.columns(2)
     with c1:
@@ -69,7 +105,12 @@ with tab_cible:
         counts = df_f[TARGET_COL].value_counts().rename({0: "Non-défaut (0)", 1: "Défaut (1)"})
         st.bar_chart(counts)
 
-# ─ Onglet 2 : socio-démographie ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 2 — Socio-démographie : taux de défaut par segment démographique
+#
+# 4 graphiques : sexe, niveau d'éducation, statut marital, distribution de l'âge.
+# LABEL_MAPS traduit les codes numériques en libellés lisibles (ex. 1 → "Homme").
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_socio:
     c1, c2 = st.columns(2)
     with c1:
@@ -90,7 +131,12 @@ with tab_socio:
         st.markdown("**Distribution de l'âge par statut de défaut**")
         st.plotly_chart(hist_numeric(df_f, "age"), use_container_width=True)
 
-# ─ Onglet 3 : finances ───────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 3 — Finances : distribution des montants et statistiques groupées
+#
+# Distribution de la limite de crédit + tableau mean/median sur limit_balance,
+# bill_amt_1 et pay_amt_1, groupé par statut de défaut (0/1).
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_fin:
     c1, c2 = st.columns(2)
     with c1:
@@ -109,7 +155,12 @@ with tab_fin:
     st.markdown("**Distribution de bill_amt_1 par statut de défaut**")
     st.plotly_chart(hist_numeric(df_f, "bill_amt_1"), use_container_width=True)
 
-# ─ Onglet 4 : historique paiement ───────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 4 — Historique de paiement : retards par mois et par statut de défaut
+#
+# Taux de défaut selon pay_0 (mois le plus récent) + tableau des retards
+# moyens sur 6 mois (pay_0 à pay_6), groupé par défaut/non-défaut.
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_paiement:
     st.markdown("**Taux de défaut selon le statut de paiement du mois précédent (pay_0)**")
     st.plotly_chart(bar_default_rate(df_f, "pay_0"), use_container_width=True)
@@ -125,7 +176,11 @@ with tab_paiement:
     )
     st.dataframe(pay_stats, use_container_width=True)
 
-# ─ Onglet 5 : données brutes ─────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# Onglet 5 — Données brutes : aperçu du DataFrame filtré
+#
+# Affiche les 200 premières lignes de df_f + .describe() sur toutes les colonnes.
+# ──────────────────────────────────────────────────────────────────────────────
 with tab_raw:
     st.markdown(f"**Aperçu — {len(df_f):,} lignes × {len(df_f.columns)} colonnes**")
     st.dataframe(df_f.head(200), use_container_width=True, height=400)
