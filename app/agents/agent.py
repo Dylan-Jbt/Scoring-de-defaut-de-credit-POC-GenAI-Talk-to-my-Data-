@@ -28,7 +28,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 
 from config import LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, OPENAI_API_KEY, OPENAI_MODEL
-from promts import SYSTEM_PROMPT
+from promts import SYSTEM_PROMPT_WITH_MODEL_CONTEXT as SYSTEM_PROMPT
 from tools import execute_pandas_query, get_column_statistics, get_dataset_info, get_default_rate_by_group
 
 if not OPENAI_API_KEY:

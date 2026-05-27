@@ -55,7 +55,8 @@ _FE_INJECTED = False
 #
 # joblib résout les FunctionTransformer serialisés en cherchant la fonction
 # dans __main__ ; cette injection la rend disponible avant joblib.load().
-# ──────────────────────────────────────────────────────────────────────────────def _inject_feature_engineering() -> None:
+# ──────────────────────────────────────────────────────────────────────────────
+def _inject_feature_engineering() -> None:
     """Résout et injecte feature_engineering dans __main__ (une seule fois)."""
     global _FE_INJECTED
     if _FE_INJECTED:

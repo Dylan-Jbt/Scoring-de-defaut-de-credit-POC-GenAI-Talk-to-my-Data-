@@ -23,7 +23,7 @@ La mission se déroule en 3 étapes :
 | Taille | 2 965 lignes × 26 colonnes |
 | Variable cible | `default_payment_next_month` (0 = pas de défaut, 1 = défaut) |
 | Taux de défaut | ~21 % |
-| ⚠️ Leakage | La colonne `predicted_default_payment_next_month` **ne doit pas** être utilisée comme feature |
+| Leakage | La colonne `predicted_default_payment_next_month` **ne doit pas** être utilisée comme feature |
 
 **Variables :** socio-démographiques (`sex`, `education_level`, `marital_status`, `age`), financières (`limit_balance`, `bill_amt_1..6`, `pay_amt_1..6`), historique de paiement (`pay_0`, `pay_2..6`).
 
@@ -35,6 +35,7 @@ La mission se déroule en 3 étapes :
 .
 ├── README.md
 ├── requirements.txt
+├── Dockerfile
 ├── data/
 │   └── credit_card_default.csv          # Dataset brut
 ├── notebooks/
@@ -55,7 +56,6 @@ La mission se déroule en 3 étapes :
 │   └── figures/                         # Visualisations EDA et performances
 └── app/
     ├── streamlit_app.py                 # Point d'entrée de l'application
-    ├── Dockerfile
     ├── pages/
     │   ├── Defaut_credit.py             # Scoring individuel
     │   ├── Exploration.py               # Analyse exploratoire interactive
@@ -63,11 +63,11 @@ La mission se déroule en 3 étapes :
     │   ├── Talk_to_my_Data.py           # Interface chat LLM
     │   └── A_propos.py
     ├── agents/
-    │   └── config/
-    │       ├── agent.py                 # Agent LangChain v1 (ReAct)
-    │       ├── config.py                # Clés API, variables d'environnement
-    │       ├── promts.py                # Prompt système
-    │       └── tools.py                 # Outils d'analyse pandas
+    │   ├── agent.py                     # Agent LangChain v1 (ReAct + InMemorySaver)
+    │   ├── config.py                    # Clés API, variables d'environnement
+    │   ├── promts.py                    # Prompts système (avec contexte modèle RF)
+    │   ├── tools.py                     # Outils d'analyse pandas (4 outils)
+    │   └── pyproject.toml
     └── utils/
         ├── data.py
         └── charts.py
@@ -81,7 +81,7 @@ La mission se déroule en 3 étapes :
 
 | Métrique | Jeu de test (hold-out) |
 |---|---|
-| **PR-AUC ⭐** | **0.6208** |
+| **PR-AUC** | **0.6208** |
 | ROC-AUC | 0.8137 |
 | F1-Score | 0.5839 |
 | Recall | 0.6299 |
@@ -140,11 +140,11 @@ L'application s'ouvre sur `http://localhost:8501` avec 5 pages :
 
 | Page | Description |
 |---|---|
-| 🏠 Accueil | KPIs globaux du dataset et du modèle |
-| 💳 Scoring Défaut | Prédiction individuelle via formulaire |
-| 🔍 Exploration | Analyse exploratoire interactive |
-| 📊 Rapport modèle | Métriques, lift, figures d'analyse |
-| 🤖 Talk to my Data | Chat en langage naturel avec l'agent LLM |
+| Accueil | KPIs globaux du dataset et du modèle |
+| Scoring Défaut | Prédiction individuelle via formulaire |
+| Exploration | Analyse exploratoire interactive |
+| Rapport modèle | Métriques, lift, figures d'analyse |
+| Talk to my Data | Chat en langage naturel avec l'agent LLM |
 
 ---
 
@@ -160,13 +160,14 @@ L'application s'ouvre sur `http://localhost:8501` avec 5 pages :
 
 ## POC GenAI — Architecture de l'agent
 
-L'agent suit le pattern **ReAct** (Reasoning + Acting) de LangChain v1 avec mémoire conversationnelle (`InMemorySaver`) :
+L'agent suit le pattern **ReAct** (Reasoning + Acting) de LangChain v1 avec mémoire conversationnelle (`InMemorySaver`) et contexte du modèle RF injecté dans le prompt système :
 
 ```
 Question utilisateur
       │
       ▼
-  Agent ReAct (gpt-4o-mini)
+  Agent ReAct (gpt-4o-mini, température 0)
+  Prompt système : contexte métier + métriques RF (PR-AUC, ROC-AUC…)
       │
       ├─► get_dataset_info         → structure du dataset, dictionnaire des colonnes
       ├─► get_column_statistics    → statistiques descriptives d'une colonne
@@ -174,10 +175,17 @@ Question utilisateur
       └─► execute_pandas_query     → code pandas personnalisé (analyses complexes)
       │
       ▼
-  Réponse en français + résultat chiffré
+  Réponse structurée en 3 sections :
+    **Réponse**       — explication en français
+    **Code exécuté**  — affiché avec coloration syntaxique (st.code)
+    **Résultat**      — chiffres, tableaux ou agrégats
+      +
+  Expander « Etapes de l'agent » — outils appelés, arguments et résultats
 ```
 
-**Contraintes respectées :** Python uniquement, pas de SQL, pas d'accès réseau, pas d'écriture disque.
+**Mémoire :** historique de conversation isolé par session via `InMemorySaver` + `thread_id` UUID.  
+**Observabilité :** traces Langfuse optionnelles (activées si `LANGFUSE_*` présents dans `.env`).  
+**Contraintes :** Python/pandas uniquement, pas de SQL, pas d'accès réseau, pas d'écriture disque.
 
 ---
 

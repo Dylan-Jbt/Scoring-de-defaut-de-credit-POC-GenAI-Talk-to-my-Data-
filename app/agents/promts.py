@@ -90,9 +90,9 @@ Un modèle Random Forest optimisé a déjà été entraîné sur ce dataset.
 Performances sur le jeu de test :
   • PR-AUC  : 0.6208  (métrique principale — prioritaire sur un dataset déséquilibré)
   • ROC-AUC : 0.8137
-  • F1-Score : 0.4770
-  • Recall   : 0.6478
-  • Precision: 0.3773
+  • F1-Score : 0.5839
+  • Recall   : 0.6299
+  • Precision: 0.5442
 Le modèle est utilisé pour calculer un score de risque individuel pour chaque client.
 
 PROCESSUS D'ANALYSE :

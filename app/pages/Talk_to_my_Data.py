@@ -13,12 +13,13 @@ Points clés :
   - Langfuse : observabilité optionnelle, activée si les clés sont présentes dans .env
 """
 
+import re
 import sys
 import uuid
 from pathlib import Path
 
 import streamlit as st
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Résolution des imports internes — app/ et app/agents/ dans sys.path
@@ -31,6 +32,55 @@ if str(APP) not in sys.path:
     sys.path.insert(0, str(APP))
 if str(APP / "agents") not in sys.path:
     sys.path.insert(0, str(APP / "agents"))
+
+# ──────────────────────────────────────────────────────────────────────────────
+# _render_structured_response() — affichage sectionné d'une réponse agent
+#
+# Parse les trois sections imposées par le SYSTEM_PROMPT :
+#   **Réponse**       → st.markdown  (explication en français)
+#   **Code exécuté** → st.code(..., language="python")  (bloc coloré avec copie)
+#   **Résultat**      → st.markdown  (tableau / chiffres)
+# Si aucune section n'est détectée (réponse libre ou refus), fallback markdown.
+# ──────────────────────────────────────────────────────────────────────────────
+_SECTION_RE = re.compile(
+    r'\*\*(Réponse|Code exécuté|Résultat)\s*\*\*\s*:?\s*',
+    re.IGNORECASE,
+)
+_CODE_BLOCK_RE = re.compile(r'```(?:python)?\n?(.*?)```', re.DOTALL)
+
+
+def _render_structured_response(text: str) -> None:
+    """Parse et affiche une réponse agent avec sections visuelles distinctes."""
+    parts = _SECTION_RE.split(text)
+    if len(parts) <= 1:
+        # Pas de sections structurées — réponse libre ou message de refus
+        st.markdown(text)
+        return
+
+    # parts = [préambule, titre1, contenu1, titre2, contenu2, ...]
+    if parts[0].strip():
+        st.markdown(parts[0])
+
+    i = 1
+    while i + 1 < len(parts):
+        title = parts[i].strip()
+        content = parts[i + 1].strip()
+        i += 2
+
+        if not content:
+            continue
+
+        if "code" in title.lower():
+            st.markdown(f"**{title}**")
+            # Extrait le code hors des balises ``` si l'agent les a incluses
+            code_match = _CODE_BLOCK_RE.search(content)
+            st.code(
+                code_match.group(1).strip() if code_match else content,
+                language="python",
+            )
+        else:
+            st.markdown(f"**{title}**")
+            st.markdown(content)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Configuration de la page — titre et introduction de la page chat
@@ -93,7 +143,10 @@ st.session_state.setdefault("pending_question", None)
 # ──────────────────────────────────────────────────────────────────────────────
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+        if msg["role"] == "assistant":
+            _render_structured_response(msg["content"])
+        else:
+            st.markdown(msg["content"])
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Exemples de questions — boutons de démarrage rapide (visibles si historique vide)
@@ -157,12 +210,44 @@ if active_prompt:
                 )
                 # LangGraph retourne tous les messages (HumanMessage, ToolMessage, AIMessage).
                 # On garde uniquement le dernier AIMessage — c'est la réponse finale.
-                ai_msgs = [m for m in result.get("messages", []) if isinstance(m, AIMessage)]
-                answer = ai_msgs[-1].content if ai_msgs else "L'agent n'a produit aucune réponse."
+                all_msgs = result.get("messages", [])
+                ai_msgs = [m for m in all_msgs if isinstance(m, AIMessage)]
+                answer = str(ai_msgs[-1].content) if ai_msgs else "L'agent n'a produit aucune réponse."
             except Exception as e:
+                all_msgs = []
                 answer = f"Erreur lors de l'appel à l'agent : {e}"
 
-        st.markdown(answer)
+        # ── Étapes intermédiaires — outils appelés pendant l'exécution ────────
+        # Reconstruit les paires (appel, résultat) depuis les messages LangGraph :
+        # AIMessage.tool_calls contient le nom, les arguments et l'id de chaque appel ;
+        # ToolMessage.tool_call_id permet de retrouver l'appel correspondant même si
+        # plusieurs outils sont appelés en parallèle dans le même cycle ReAct.
+        steps: dict[str, dict] = {}   # tool_call_id → {name, args, output}
+        steps_order: list[str] = []   # conserve l'ordre d'appel
+
+        for msg in all_msgs:
+            if isinstance(msg, AIMessage) and msg.tool_calls:
+                for tc in msg.tool_calls:
+                    call_id = tc["id"]
+                    steps[call_id] = {"name": tc["name"], "args": tc.get("args", {})}
+                    steps_order.append(call_id)
+            elif isinstance(msg, ToolMessage):
+                call_id = msg.tool_call_id
+                if call_id in steps:
+                    steps[call_id]["output"] = msg.content
+
+        if steps_order:
+            with st.expander(f"Etapes de l'agent — {len(steps_order)} outil(s) appelé(s)", expanded=False):
+                for i, call_id in enumerate(steps_order, 1):
+                    step = steps[call_id]
+                    st.markdown(f"**{i}. `{step['name']}`**")
+                    if step.get("args"):
+                        st.json(step["args"])
+                    if step.get("output"):
+                        out = step["output"]
+                        st.text(out if len(out) <= 800 else out[:800] + "…")
+
+        _render_structured_response(answer)
         st.session_state.messages.append({"role": "assistant", "content": answer})
 
 # ──────────────────────────────────────────────────────────────────────────────
